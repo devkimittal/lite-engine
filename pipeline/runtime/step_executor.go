@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"sync"
 	"time"
 
@@ -244,6 +245,14 @@ func (e *StepExecutor) executeStep(r *api.StartStepRequest) (*runtime.State, map
 	client := state.GetLogStreamClient()
 	wc := livelog.New(client, r.LogKey, r.Name, getNudges(), false)
 	wr := logstream.NewReplacer(wc, secrets)
+
+	s := "Executing the following command : " + strings.Join(r.Run.Command, "\n")
+
+	logrus.Infoln("Executing the following command in step_execuator" + strings.Join(r.Run.Command, "\n"))
+	//convert string to bytes
+	b := []byte(s)
+	wr.Write(b)
+
 	go wr.Open() //nolint:errcheck
 
 	// if the step is configured as a daemon, it is detached
